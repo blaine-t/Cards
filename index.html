@@ -217,7 +217,7 @@
             current.style.color = "Black";
         }
 
-        if (deck.length != 0 && deck.length != 51) {
+        if (deck.length != 0) {
             const next = document.getElementsByClassName("next")[0];
             if (deck[deck.length - 1].suit == "♥️" || deck[deck.length - 1].suit == "♦️") {
                 next.style.color = "Red";
@@ -265,7 +265,7 @@
                 errors++;
             }
         }
-        alert("You did it in " + (endTime - startTime) / 1000 + "s.\n" + "You had " + errors + " errors.");
+        alert("You did it in " + (endTime - startTime) / 1000 + "s.\n" + "You had " + errors + " errors.\n" + "Patch 2");
     }
 
 </script>
