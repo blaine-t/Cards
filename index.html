@@ -46,11 +46,12 @@
             width: 20vw;
             font-size: xx-large;
             background-color: #101010;
-            border: none;
+            border: 2.5px solid white;
         }
 
         h3 {
             text-align: center;
+            font-size: 3em;
         }
 
         #bigBox {
@@ -58,18 +59,33 @@
             flex-direction: column;
             align-items: center;
         }
+
+        #instructionBox {
+            display: flex;
+            justify-content: space-around;
+        }
     </style>
 </head>
 
 <body>
     <h1 style="color: white;">BatCards</h1>
-    <h3 id="timer" style="color: white; display: none;">Time: 0.000s</h3>
+    <div id="instructionBox">
+        <h3 style="color: white;">Black Cards</h3>
+        <h3 style="color: red;">Red Cards&nbsp&nbsp</h3>
+    </div>
     <div id="bigBox">
-        <div style="height: 10vh; display: none;" class="deck next" id="playingCards">
+        <div style="height: 10vh;" class="deck next" id="playingCards">
             <h2 class="cardTitleAhead"></h2>
         </div>
         <div id="containingBox">
-            <button onclick="addCards(true)">⬅️</button>
+            <button onclick="addCards(true)"><svg fill="#000000" height="40vh" width="15vw" version="1.1" id="Layer_1"
+                    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 330 330"
+                    xml:space="preserve">
+                    <path stroke-width='4' fill='white' stroke='white' d="M111.213,165.004L250.607,25.607c5.858-5.858,5.858-15.355,0-21.213c-5.858-5.858-15.355-5.858-21.213,0.001
+	l-150,150.004C76.58,157.211,75,161.026,75,165.004c0,3.979,1.581,7.794,4.394,10.607l150,149.996
+	C232.322,328.536,236.161,330,240,330s7.678-1.464,10.607-4.394c5.858-5.858,5.858-15.355,0-21.213L111.213,165.004z" />
+
+                </svg></button>
             <div class="deck left" id="playingCards">
                 <h2 class="cardTitleLeft"></h2>
                 <h2 class="cardTitleLeft bottomRight"></h2>
@@ -82,7 +98,14 @@
                 <h2 class="cardTitleRight"></h2>
                 <h2 class="cardTitleRight bottomRight"></h2>
             </div>
-            <button onclick="addCards(false)">➡️</button>
+            <button onclick="addCards(false)"><svg fill="#000000" height="40vh" width="15vw" version="1.1" id="Layer_1"
+                    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 330 330"
+                    xml:space="preserve">
+                    <path stroke-width='4' fill='white' stroke='white' d="M233.252,155.997L120.752,6.001c-4.972-6.628-14.372-7.97-21-3c-6.628,4.971-7.971,14.373-3,21
+	l105.75,140.997L96.752,306.001c-4.971,6.627-3.627,16.03,3,21c2.698,2.024,5.856,3.001,8.988,3.001
+	c4.561,0,9.065-2.072,12.012-6.001l112.5-150.004C237.252,168.664,237.252,161.33,233.252,155.997z" />
+
+                </svg></button>
         </div>
     </div>
 
@@ -122,8 +145,9 @@
         }
     }
 
-    const deck = new Array();
+    let deck;
     function createDeck() {
+        deck = new Array();
         for (suit of suits) {
             for (value of values) {
                 const card = new Card(suit, value);
@@ -141,43 +165,28 @@
     let blackCards = new Array();
     let redCards = new Array();
     updateCardView();
-    let timer;
+    let startTime;
+    let endTime;
     let errors = 0;
-
-
-    // function to start the timer
-    function startTimer() {
-        // First check whether Web Workers are supported
-        if (typeof (Worker) !== "undefined") {
-            // Check whether Web Worker has been created. If not, create a new Web Worker based on the Javascript file simple-timer.js
-            if (timer == null) {
-                timer = new Worker("simple-timer.js");
-            }
-            // Update timer div with output from Web Worker
-            timer.onmessage = function (event) {
-                document.getElementById("timer").innerHTML = event.data;
-            };
-        } else {
-            // Web workers are not supported by your browser
-            document.getElementById("timer").innerHTML = "Sorry, your browser does not support Web Workers ...";
-        }
-    }
-
-    // function to stop the timer
-    function stopTimer() {
-        timer.terminate();
-        timer = null;
-    }
 
     document.addEventListener('keydown', function (event) {
         if (event.keyCode == 37 || event.keyCode == 65) {
             addCards(true);
-        } else if (event.keyCode == 39 || event.keyCode == 76) {
+        } else if (event.keyCode == 39 || event.keyCode == 76 || event.keyCode == 68) {
             addCards(false);
         } else if (event.keyCode == 32) {
-            location.reload();
+            resetGame();
         }
     });
+
+    function resetGame() {
+        createDeck();
+        errors = 0;
+        blackCards = new Array();
+        redCards = new Array();
+        currentCard = deck.pop();
+        updateCardView();
+    }
 
     function addCards(isBlack) {
         if (isBlack) {
@@ -186,19 +195,16 @@
             redCards.push(currentCard);
         }
         if (deck.length == 0) {
-            stopTimer();
+            endTime = new Date().valueOf();
             gameTally();
-            createDeck();
-            errors = 0;
-            blackCards = new Array();
-            redCards = new Array();
+            resetGame();
             return;
         } else {
             currentCard = deck.pop();
             updateCardView();
         }
         if (deck.length == 50) {
-            startTimer();
+            startTime = new Date().valueOf();
         }
     }
 
@@ -211,7 +217,7 @@
             current.style.color = "Black";
         }
 
-        if (deck.length != 0) {
+        if (deck.length != 0 && deck.length != 51) {
             const next = document.getElementsByClassName("next")[0];
             if (deck[deck.length - 1].suit == "♥️" || deck[deck.length - 1].suit == "♦️") {
                 next.style.color = "Red";
@@ -219,6 +225,8 @@
                 next.style.color = "Black";
             }
             Array.from(document.getElementsByClassName("cardTitleAhead")).forEach((element) => element.innerText = deck[deck.length - 1].value + deck[deck.length - 1].suit);
+        } else {
+            Array.from(document.getElementsByClassName("cardTitleAhead")).forEach((element) => element.innerText = "");
         }
 
         if (blackCards != null && blackCards.length > 0) {
@@ -229,6 +237,8 @@
                 left.style.color = "Black";
             }
             Array.from(document.getElementsByClassName("cardTitleLeft")).forEach((element) => element.innerText = blackCards[blackCards.length - 1].value + blackCards[blackCards.length - 1].suit);
+        } else {
+            Array.from(document.getElementsByClassName("cardTitleLeft")).forEach((element) => element.innerText = "");
         }
 
         if (redCards != null && redCards.length > 0) {
@@ -239,6 +249,8 @@
                 right.style.color = "Black";
             }
             Array.from(document.getElementsByClassName("cardTitleRight")).forEach((element) => element.innerText = redCards[redCards.length - 1].value + redCards[redCards.length - 1].suit);
+        } else {
+            Array.from(document.getElementsByClassName("cardTitleRight")).forEach((element) => element.innerText = "");
         }
     }
 
@@ -253,7 +265,7 @@
                 errors++;
             }
         }
-        alert("You did it in " + document.getElementById("timer").innerText + "\n" + "You had " + errors + " errors.");
+        alert("You did it in " + (endTime - startTime) / 1000 + "s.\n" + "You had " + errors + " errors.");
     }
 
 </script>
